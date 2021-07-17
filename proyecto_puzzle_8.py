@@ -21,7 +21,7 @@ para la asignatura Introducción a la IA en ITLA.
 Python 3
 """
 # Librerías
-import queue
+import queue as Q
 import time
 import math
 import resource
@@ -233,6 +233,7 @@ def calcular_heurisitica(estado):
 
     return (piezas_incorrectas - 1) + estado.cost
 
+
 #Funcion que calcula la ruta
 def calcular_ruta(state):
 
@@ -248,6 +249,11 @@ def calcular_ruta(state):
         ruta_padres = ruta_padres.parent
 
     return ruta[::-1]
+
+
+# Funcion que calcula el costo de una ruta
+def calcular_costo(ruta):
+    return len(ruta)
 
 
 # Estructura de datos
@@ -273,6 +279,7 @@ class myQueue():
 
     def empty(self):
         return len(self.lista) == 0
+
 
 #Stack Personalizado
 class MyStack:
@@ -342,7 +349,11 @@ def bfs_search(initial_state):
             path_to_goal = calcular_ruta(state)
             search_depth = len(path_to_goal)     
 
-            return path_to_goal, state.cost, nodes_expanded, search_depth, max_search_depth
+            return (path_to_goal, 
+                    state.cost, 
+                    nodes_expanded, 
+                    search_depth, 
+                    max_search_depth)
 
         nodes_expanded += 1
 
@@ -375,7 +386,11 @@ def dfs_search(initial_state):
             cost_of_path = calcular_costo(path_to_goal)
             search_depth = len(path_to_goal)  
 
-            return path_to_goal, state.cost, nodes_expanded, search_depth, max_search_depth
+            return (path_to_goal, 
+                    state.cost, 
+                    nodes_expanded, 
+                    search_depth, 
+                    max_search_depth)
 
         nodes_expanded += 1
 
@@ -408,7 +423,11 @@ def A_star_search(initial_state):
             path_to_goal = calcular_ruta(state)
             search_depth = len(path_to_goal)     
 
-            return path_to_goal, state.cost, nodes_expanded, search_depth, max_search_depth
+            return (path_to_goal, 
+                    state.cost, 
+                    nodes_expanded, 
+                    search_depth, 
+                    max_search_depth)
 
         nodes_expanded += 1
 
@@ -424,8 +443,9 @@ def A_star_search(initial_state):
 
 # Funcion principal llamada desde el punto de acceso
 def run():
+    
     data = input() 
-    #sm = query[0].lower()
+
     agente_busqueda = data[:3].lower()
     numeros_data = data[3:]
     numeros_fichas = list(numeros_data)
@@ -443,9 +463,6 @@ def run():
 
     elif agente_busqueda == "ast":
         resultado = A_star_search(hard_state)
-
-    else:
-        print("Los datos introducidos no son correctos!")
 
     writeOutput(resultado)
 
