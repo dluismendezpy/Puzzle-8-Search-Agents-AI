@@ -20,170 +20,240 @@ Código esqueleto para el proyecto Puzzle-8 del Prof. Carlos Ogando
 para la asignatura Introducción a la IA en ITLA.
 Python 3
 """
-
+# Librerías
 import queue
 import time
 import math
 import resource
 
-"""##**Clase que representa el Puzzle-n general**"""
+# Clase que representa el Puzzle-n general
 
 class PuzzleState(object):
+
     """docstring para PuzzleState"""
+
     def __init__(self, config, n, parent=None, action="Initial", cost=0):
+
         if n*n != len(config) or n < 2:
             raise Exception("the length of config is not correct!")
+
         self.n = n
+
         self.cost = cost
+
         self.parent = parent
+
         self.action = action
+
         self.dimension = n
+
         self.config = config
+
         self.children = []
 
         for i, item in enumerate(self.config):
+
             if item == 0:
+
                 self.blank_row = i // self.n
+
                 self.blank_col = i % self.n
+
                 break
 
     def display(self):
+
         for i in range(self.n):
+
             line = []
+
             offset = i * self.n
+
             for j in range(self.n):
+
                 line.append(self.config[offset + j])
+
             print(line)
 
     def move_left(self):
+
         if self.blank_col == 0:
+
             return None
 
         else:
+
             blank_index = self.blank_row * self.n + self.blank_col
+
             target = blank_index - 1
+
             new_config = list(self.config)
+
             new_config[blank_index], new_config[target] = new_config[target], new_config[blank_index]
+
             return PuzzleState(tuple(new_config), self.n, parent=self, action="Left", cost=self.cost + 1)
 
     def move_right(self):
+
         if self.blank_col == self.n - 1:
+
             return None
 
         else:
             blank_index = self.blank_row * self.n + self.blank_col
+
             target = blank_index + 1
+
             new_config = list(self.config)
+
             new_config[blank_index], new_config[target] = new_config[target], new_config[blank_index]
+
             return PuzzleState(tuple(new_config), self.n, parent=self, action="Right", cost=self.cost + 1)
 
     def move_up(self):
+
         if self.blank_row == 0:
+
             return None
+
         else:
+
             blank_index = self.blank_row * self.n + self.blank_col
+
             target = blank_index - self.n
+
             new_config = list(self.config)
+
             new_config[blank_index], new_config[target] = new_config[target], new_config[blank_index]
+
             return PuzzleState(tuple(new_config), self.n, parent=self, action="Up", cost=self.cost + 1)
 
     def move_down(self):
+
         if self.blank_row == self.n - 1:
+
             return None
 
         else:
+
             blank_index = self.blank_row * self.n + self.blank_col
+
             target = blank_index + self.n
+
             new_config = list(self.config)
+
             new_config[blank_index], new_config[target] = new_config[target], new_config[blank_index]
+
             return PuzzleState(tuple(new_config), self.n, parent=self, action="Down", cost=self.cost + 1)
 
     def expand(self):
+
         """Expandir el nodo"""
+
         # Añadir nodos hijos en orden UDLR (Up-Down-Left-Right)
+
         if len(self.children) == 0:
+
             up_child = self.move_up()
 
             if up_child is not None:
+
                 self.children.append(up_child)
 
             down_child = self.move_down()
 
             if down_child is not None:
+
                 self.children.append(down_child)
 
             left_child = self.move_left()
 
             if left_child is not None:
+
                 self.children.append(left_child)
 
             right_child = self.move_right()
 
             if right_child is not None:
+
                 self.children.append(right_child)
 
         return self.children
 
-"""##**Funciones auxiliares**
-
-###Función que escribe output.txt
-"""
-
+# Mis funciones
 def writeOutput(resultado):
-  path_to_goal = resultado[0]
-  cost_of_path = resultado[1]
-  nodes_expande = resultado[2]
-  search_depth = resultado[3]
-  max_search_depth = resultado[4]
-  file = open("output.txt","w")
-  file.write(f"""path_to_goal: {path_to_goal}
+    """
+    Función que escribe output.txt
+    (Los estudiantes deben cambiar el método para que opere con los parametros necesarios).
+    """
+
+    ### SU CÓDIGO VA AQUÍ ###
+
+    path_to_goal = resultado[0]
+    cost_of_path = resultado[1]
+    nodes_expande = resultado[2]
+    search_depth = resultado[3]
+    max_search_depth = resultado[4]
+
+    file = open("output.txt","w")
+
+    file.write(f"""path_to_goal: {path_to_goal}
 cost_of_path: {cost_of_path}
 nodes_expanded: {nodes_expande}
 search_depth: {search_depth}               
-max_search_depth: {max_search_depth} 
-            """)
-  file.close()
+max_search_depth: {max_search_depth} """)
 
-"""### Funcion Indica si se llegó a la meta"""
+    file.close()
 
+
+#Funcion que indica si llego a la meta
 def test_goal(puzzle_state):
     puzzle_completed = (0,1,2,3,4,5,6,7,8)
     if puzzle_state.config == puzzle_completed:
-      return True
+        return True
 
-"""###Funcion que calcula heuristica posiciones correctas"""
 
+#Calculo de las heuristicas de las posiciones correctas
 def calcular_heurisitica(estado):
-  #estado = PuzzleState((1,2,5,3,4,0,6,7,8),3)
-  correcto = [0,1,2,3,4,5,6,7,8]
-  valor_correcto = 0
-  piezas_correctas = 0
-  piezas_incorrectas = 0
-  for valor_pieza, valor_correcto in zip(list(estado.config), correcto):
-      if valor_pieza == valor_correcto:
-          piezas_correctas += 1
-      else:
-          piezas_incorrectas += 1
-      valor_correcto += 1 
-  return (piezas_incorrectas - 1) + estado.cost
+    #estado = PuzzleState((1,2,5,3,4,0,6,7,8),3)
+    correcto = [0,1,2,3,4,5,6,7,8]
+    valor_correcto = 0
+    piezas_correctas = 0
+    piezas_incorrectas = 0
 
-"""###Funcion para calcular la ruta"""
+    for valor_pieza, valor_correcto in zip(list(estado.config), correcto):
 
+        if valor_pieza == valor_correcto:
+            piezas_correctas += 1
+
+        else:
+            piezas_incorrectas += 1
+
+        valor_correcto += 1 
+
+    return (piezas_incorrectas - 1) + estado.cost
+
+#Funcion que calcula la ruta
 def calcular_ruta(state):
+
     ruta = [state.action]
+
     ruta_padres = state.parent
+
     while ruta_padres:
+
         if ruta_padres.parent:
           ruta.append(ruta_padres.action)
+
         ruta_padres = ruta_padres.parent
+
     return ruta[::-1]
 
-"""## **Estructura de datos**
 
-###Queue Personalizado
-"""
-
+# Estructura de datos
+# Queue Personalizado
 class myQueue():
+
     def __init__(self, initial=""):
         self.lista = list()
         self.push(initial)
@@ -193,18 +263,20 @@ class myQueue():
 
     def pop(self):
         dato = self.lista.pop(0)
+
         return dato
 
     def top(self):
         dato = self.lista[0]
+
         return dato
 
     def empty(self):
         return len(self.lista) == 0
 
-"""###Stack Personalizado"""
-
+#Stack Personalizado
 class MyStack:
+
     def __init__(self, initial=""):
         self.lista = list()
         self.push(initial)
@@ -215,17 +287,20 @@ class MyStack:
     def pop(self):
        dato = self.lista[-1]
        self.lista.pop()
+
        return dato
 
     def top(self):
         dato = self.lista[-1]
+
         return dato
 
     def empty(self):
+
         return len(self.lista) == 0
 
-"""### PriorityQueue personalizado"""
 
+# PriorityQueue personalizado
 class MyPriorityQueue:
     def __init__(self, initial=""):
         self.lista = []
@@ -236,129 +311,145 @@ class MyPriorityQueue:
 
     def pop(self):
         self.lista = sorted(self.lista, key= lambda x : x[0])
+
         return self.lista.pop(0)
 
     def top(self):
         dato = self.lista[0]
+
         return dato
 
     def empty(self):
         return len(self.lista) == 0
 
-"""## **Algoritmos**
+#Algoritmos de busqueda
 
-###**Algoritmo BFS**
-"""
-
+#BFS Search
 def bfs_search(initial_state):
-  """BFS search"""
 
-  frontier = myQueue(initial_state)
-  frontier_dic = {}
-  frontier_dic[tuple(initial_state.config)] = "add"
-  explored = set()
-  max_search_depth = 0
-  nodes_expanded = 0
-  
-  while not frontier.empty():
-      state = frontier.pop()
-      explored.add(state.config)
+    frontier = myQueue(initial_state)
+    frontier_dic = {}
+    frontier_dic[tuple(initial_state.config)] = "add"
+    explored = set()
+    max_search_depth = 0
+    nodes_expanded = 0
 
-      if test_goal(state):
-          path_to_goal = calcular_ruta(state)
-          search_depth = len(path_to_goal)     
-          return path_to_goal, state.cost, nodes_expanded, search_depth, max_search_depth
+    while not frontier.empty():
+        state = frontier.pop()
+        explored.add(state.config)
 
-      nodes_expanded += 1
-      for node in state.expand():
-          if tuple(node.config) not in frontier_dic and node.config not in explored:
-              frontier_dic[tuple(node.config)] = "add"
-              frontier.push(node)
-              if node.cost > max_search_depth:
-                max_search_depth = node.cost
+        if test_goal(state):
+            path_to_goal = calcular_ruta(state)
+            search_depth = len(path_to_goal)     
 
-  return False
+            return path_to_goal, state.cost, nodes_expanded, search_depth, max_search_depth
 
-"""###**Algoritmo DFS**"""
+        nodes_expanded += 1
 
+        for node in state.expand():
+            if tuple(node.config) not in frontier_dic and node.config not in explored:
+                frontier_dic[tuple(node.config)] = "add"
+                frontier.push(node)
+                
+                if node.cost > max_search_depth:
+                    max_search_depth = node.cost
+
+    return False
+
+
+# DFS Search
 def dfs_search(initial_state):
-  frontier = MyStack(initial_state)
-  frontier_dic = {}
-  frontier_dic[tuple(initial_state.config)] = "add"
-  explored = set()
-  max_search_depth = 0
-  nodes_expanded = 0
-  
-  while not frontier.empty():
-      state = frontier.pop()
-      explored.add(state.config)
+    frontier = MyStack(initial_state)
+    frontier_dic = {}
+    frontier_dic[tuple(initial_state.config)] = "add"
+    explored = set()
+    max_search_depth = 0
+    nodes_expanded = 0
 
-      if test_goal(state):
-          path_to_goal = calcular_ruta(state)
-          cost_of_path = calcular_costo(path_to_goal)
-          search_depth = len(path_to_goal)     
-          return path_to_goal, state.cost, nodes_expanded, search_depth, max_search_depth
+    while not frontier.empty():
+        state = frontier.pop()
+        explored.add(state.config)
 
-      nodes_expanded += 1
-      for node in state.expand()[::-1]:
-          if tuple(node.config) not in frontier_dic and node.config not in explored:
-              frontier_dic[tuple(node.config)] = "add"
-              frontier.push(node)
-              if node.cost > max_search_depth:
-                 max_search_depth = node.cost
-  return False
+        if test_goal(state):
+            path_to_goal = calcular_ruta(state)
+            cost_of_path = calcular_costo(path_to_goal)
+            search_depth = len(path_to_goal)  
 
-"""###**Algoritmo A*search**"""
+            return path_to_goal, state.cost, nodes_expanded, search_depth, max_search_depth
 
+        nodes_expanded += 1
+
+        for node in state.expand()[::-1]:
+            if tuple(node.config) not in frontier_dic and node.config not in explored:
+                frontier_dic[tuple(node.config)] = "add"
+                frontier.push(node)
+
+                if node.cost > max_search_depth:
+                    max_search_depth = node.cost
+                    
+    return False
+
+
+# A*Search
 def A_star_search(initial_state):
-  """A * search"""
-  frontier = MyPriorityQueue((calcular_heurisitica(initial_state), initial_state))
-  frontier_dic = {}
-  frontier_dic[tuple(initial_state.config)] = "add"
-  explored = set()
-  max_search_depth = 0
-  nodes_expanded = 0
-  
-  while not frontier.empty():  
-      state_heuristic, state = frontier.pop()
-      explored.add(state.config)
+    """A * search"""
+    frontier = MyPriorityQueue((calcular_heurisitica(initial_state), initial_state))
+    frontier_dic = {}
+    frontier_dic[tuple(initial_state.config)] = "add"
+    explored = set()
+    max_search_depth = 0
+    nodes_expanded = 0
 
-      if test_goal(state):
-          path_to_goal = calcular_ruta(state)
-          search_depth = len(path_to_goal)     
-          return path_to_goal, state.cost, nodes_expanded, search_depth, max_search_depth
+    while not frontier.empty():  
+        state_heuristic, state = frontier.pop()
+        explored.add(state.config)
 
-      nodes_expanded += 1
-      for node in state.expand():
-          if tuple(node.config) not in frontier_dic and node.config not in explored:
-              frontier_dic[tuple(node.config)] = "add"
-              frontier.push((calcular_heurisitica(node), node))
-              if node.cost > max_search_depth:
-                max_search_depth = node.cost
-  return False
+        if test_goal(state):
+            path_to_goal = calcular_ruta(state)
+            search_depth = len(path_to_goal)     
 
-"""##**Main**"""
+            return path_to_goal, state.cost, nodes_expanded, search_depth, max_search_depth
 
-# Función Main que leerá las entradas y llamará el algoritmo correspondiente
-def main():
-    query = input() 
+        nodes_expanded += 1
+
+        for node in state.expand():
+            if tuple(node.config) not in frontier_dic and node.config not in explored:
+                frontier_dic[tuple(node.config)] = "add"
+                frontier.push((calcular_heurisitica(node), node))
+
+                if node.cost > max_search_depth:
+                    max_search_depth = node.cost
+    return False
+
+
+# Funcion principal llamada desde el punto de acceso
+def run():
+    data = input() 
     #sm = query[0].lower()
-    sm = query[0:3].lower()
-    a = query[3:]
-    begin_state = list(a)
-    begin_state = tuple(map(int, begin_state))
-    size = int(math.sqrt(len(begin_state)))
-    hard_state = PuzzleState(begin_state, size)
+    agente_busqueda = data[:3].lower()
+    numeros_data = data[3:]
+    numeros_fichas = list(numeros_data)
+    numeros_fichas = tuple(map(int, numeros_fichas))
 
-    if sm == "bfs":
+    size = int(math.sqrt(len(numeros_fichas)))
+
+    hard_state = PuzzleState(numeros_fichas, size)
+
+    if agente_busqueda == "bfs":
         resultado = bfs_search(hard_state)
-    elif sm == "dfs":
+
+    elif agente_busqueda == "dfs":
         resultado = dfs_search(hard_state)
-    elif sm == "ast":
+
+    elif agente_busqueda == "ast":
         resultado = A_star_search(hard_state)
+
     else:
-        print("Introduzca comandos de argumentos válidos !")
+        print("Los datos introducidos no son correctos!")
+
     writeOutput(resultado)
 
+
+#Punto de acceso
 if __name__ == '__main__':
-    main()
+    run()
